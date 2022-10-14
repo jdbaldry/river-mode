@@ -4,8 +4,8 @@
 
 ;; Author: Jack Baldry <jack.baldry@grafana.com>
 ;; Version: 1.0
-;; Package-Requires ((cl-lib "0.5"))
-;; Keywords: river, grafana, agent
+;; Package-Requires:
+;; Keywords: river, grafana, agent, flow
 ;; URL: https://github.com/jdbaldry/river-mode
 
 ;;; Commentary:
@@ -72,14 +72,102 @@
   (setq indent-tabs-mode t)
   (run-hooks 'river-mode-hook))
 
+;; Taken from https://github.com/dominikh/go-mode.el/blob/08aa90d52f0e7d2ad02f961b554e13329672d7cb/go-mode.el#L1852-L1894
+;; Adjusted to avoid relying on cl-libs or other go-mode internal functions.
+(defun river--apply-rcs-patch (patch-buffer)
+  "Apply an RCS-formatted diff from PATCH-BUFFER to the current buffer."
+  (let ((target-buffer (current-buffer))
+        ;; Relative offset between buffer line numbers and line numbers
+        ;; in patch.
+        ;;
+        ;; Line numbers in the patch are based on the source file, so
+        ;; we have to keep an offset when making changes to the
+        ;; buffer.
+        ;;
+        ;; Appending lines decrements the offset (possibly making it
+        ;; negative), deleting lines increments it. This order
+        ;; simplifies the forward-line invocations.
+        (line-offset 0)
+        (column (current-column)))
+    (save-excursion
+      (with-current-buffer patch-buffer
+        (goto-char (point-min))
+        (while (not (eobp))
+          (unless (looking-at "^\\([ad]\\)\\([0-9]+\\) \\([0-9]+\\)")
+            (error "Invalid rcs patch or internal error in go--apply-rcs-patch"))
+          (forward-line)
+          (let ((action (match-string 1))
+                (from (string-to-number (match-string 2)))
+                (len  (string-to-number (match-string 3))))
+            (cond
+             ((equal action "a")
+              (let ((start (point)))
+                (forward-line len)
+                (let ((text (buffer-substring start (point))))
+                  (with-current-buffer target-buffer
+                    (setq line-offset (- line-offset len))
+                    (goto-char (point-min))
+                    (forward-line (- from len line-offset))
+                    (insert text)))))
+             ((equal action "d")
+              (with-current-buffer target-buffer
+                (goto-char (point-min))
+                (forward-line (1- (- from line-offset)))
+                (setq line-offset (+ line-offset len))
+                (dotimes (_ len)
+                  (delete-region (point) (save-excursion (move-end-of-line 1) (point)))
+                  (delete-char 1))))
+             (t
+              (error "Invalid rcs patch or internal error in go--apply-rcs-patch")))))))
+    (move-to-column column)))
+
 (defun river-format()
-  "Format buffer with 'flow agent fmt'."
+  "Format buffer with 'flow agent fmt'.
+Formatting requires the 'agent' binary in the PATH."
   (interactive)
-  (write-region (point-min) (point-max) (buffer-file-name))
-  (with-environment-variables
-      (("EXPERIMENTAL_ENABLE_FLOW" "true"))
-    (shell-command (concat "agent fmt -w " (buffer-file-name))))
-  (revert-buffer :ignore-auto :noconfirm))
+  (let ((tmpfile (make-nearby-temp-file
+                  "agent-fmt"
+                  nil
+                  (or (concat "." (file-name-extension (buffer-file-name))) ".rvr")))
+        (patchbuf (get-buffer-create "*agent fmt patch*"))
+        (errbuf (get-buffer-create "*agent fmt errors*"))
+        (coding-system-for-read 'utf-8)
+        (coding-system-for-write 'utf-8))
+    (unwind-protect
+        (save-restriction
+          (widen)
+          (with-current-buffer errbuf (setq buffer-read-only nil) (erase-buffer))
+
+          (write-region nil nil tmpfile)
+
+          (message "Calling 'agent fmt'")
+          (if (zerop (with-environment-variables
+                         (("EXPERIMENTAL_ENABLE_FLOW" "true"))
+                       (apply #'process-file "agent" nil errbuf nil `("fmt" "-w" ,(file-local-name tmpfile)))))
+              (progn
+                (if (zerop (let ((local-copy (file-local-copy tmpfile)))
+                             (unwind-protect
+                                 (call-process-region (point-min) (point-max) "diff" nil patchbuf nil "-n" "-" (or (or local-copy tmpfile)))
+                               (when local-copy (delete-file local-copy)))))
+                    (message "Buffer is already formatted")
+                  (river--apply-rcs-patch patchbuf)
+                  (message "Applied 'agent fmt'"))
+                (kill-buffer errbuf))
+            (message "Could not apply 'agent fmt'")
+            (let ((filename (buffer-file-name)))
+              (with-current-buffer errbuf
+                (goto-char (point-min))
+                (insert "'agent fmt' errors:\n")
+                (while (search-forward-regexp
+                        (concat "^\\(" (regexp-quote (file-local-name tmpfile))
+                                "\\):")
+                        nil t)
+                  (replace-match (file-name-nondirectory filename) t t nil 1))
+                (compilation-mode)
+                (display-buffer errbuf)))))
+      (kill-buffer patchbuf)
+      (delete-file tmpfile))))
+
 
 (defun river-format-before-save ()
   "Add this to .emacs to run formatting on the current buffer when saving:
