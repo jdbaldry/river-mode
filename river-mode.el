@@ -34,12 +34,9 @@
 ;; TODO: introduce levels of font lock
 ;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Levels-of-Font-Lock.html
 (defconst river-font-lock-keywords
-  (let (
-        )
-    (list
-     `(,river-block-header-regexp . (1 font-lock-variable-name-face t))
-     `(,river-constant . font-lock-constant-face)
-     `(,river-todo . (0 font-lock-warning-face t))))
+  `((,river-block-header-regexp . (1 font-lock-variable-name-face t))
+    (,river-constant . font-lock-constant-face)
+    (,river-todo . (0 font-lock-warning-face t)))
   "Syntax highlighting for 'river-mode'.")
 
 (defvar river-mode-syntax-table
