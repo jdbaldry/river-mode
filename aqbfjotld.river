@@ -78,5 +78,5 @@ integer "example" {
 	// To check: agent --version && EXPERIMENTAL_ENABLE_FLOW=1 agent fmt - <<<"underscored = 1_000_000"
 	// million = 1_000_000
 
-	preceding_underscore = _1_00 // Is an identifier not an integer
+	preceding_underscore = _1_00 // Is an identifier not an integer.
 }
