@@ -31,6 +31,23 @@ prometheus.remote_write "default" {
 	}
 }
 
+float "example" {
+	zero                               = 0.
+	decimal                            = 72.40
+	leading_zero                       = 072.40 // == 72.40
+	exponent                           = 1.e+0
+	negative_exponent                  = 6.67428e-11
+	capital_exponent                   = 1E6
+	missing_leading_zero               = .25
+	missing_leading_zero_with_exponent = .12345E+5
+	// I believe the trailing decimal point is breaking parsing.
+	// To check: agent --version && EXPERIMENTAL_ENABLE_FLOW=1 agent fmt - <<<"missing_trailing_zero = 1_5."
+	// missing_trailing_zero = 1_5.  // == 15.0
+	// Not yet sure why this doesn't parse.
+	// To check: agent --version && EXPERIMENTAL_ENABLE_FLOW=1 agent fmt - <<<"decimal_exponent = 0.15e+0_2"
+	// decimal_exponent = 0.15e+0_2  // == 15.0
+}
+
 integer "example" {
 	zero = 0
 	one  = 1
@@ -53,8 +70,6 @@ integer "example" {
 	// Underscores for readability are not yet supported by the River parser.
 	// To check: agent --version && EXPERIMENTAL_ENABLE_FLOW=1 agent fmt - <<<"underscored = 1_000_000"
 	// million = 1_000_000
-	googol   = 10e100
-	exponent = 1e10
 
 	preceding_underscore = _1_00 // Is an identifier not an integer
 }
