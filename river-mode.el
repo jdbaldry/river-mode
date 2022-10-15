@@ -125,7 +125,7 @@ Formatting requires the 'agent' binary in the PATH."
   (let ((tmpfile (make-nearby-temp-file
                   "agent-fmt"
                   nil
-                  (or (concat "." (file-name-extension (buffer-file-name))) ".rvr")))
+                  (or (concat "." (file-name-extension (buffer-file-name))) ".river")))
         (patchbuf (get-buffer-create "*agent fmt patch*"))
         (errbuf (get-buffer-create "*agent fmt errors*"))
         (coding-system-for-read 'utf-8)
