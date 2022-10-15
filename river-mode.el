@@ -48,10 +48,10 @@
                             (seq ?. hex-digits))))
 (rx-define hex-float-lit (seq ?0 (any ?x ?X) hex-man hex-exp))
 
-(rx-define river-identifier (seq (any alpha ?_) (* word)))
+(rx-define river-identifier (seq (any alpha ?_) (* (any alnum ?_))))
 
 ;; Integers are parsed with strconv.ParseInt which supports a leading sign.
-(rx-define river-block-header (seq bol (group (group river-identifier) (* (group ?. river-identifier)))))
+(rx-define river-block-header (seq bol river-identifier (* (group ?. river-identifier))))
 (rx-define river-constant (or "true" "false" "null"))
 (rx-define river-float (or dec-float-lit hex-float-lit))
 (rx-define river-int (seq (any ?- ?+ whitespace) (or bin-lit dec-lit hex-lit oct-lit) eow))
@@ -75,6 +75,7 @@
 
 (defvar river-mode-syntax-table
   (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?_ "w" st)
     ;; From: https://www.emacswiki.org/emacs/ModeTutorial
     ;; > 1) That the character '/' is the start of a two-character comment sequence ('1'),
     ;; > that it may also be the second character of a two-character comment-start sequence ('2'),
