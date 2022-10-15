@@ -37,13 +37,12 @@
 (rx-define hex-lit (seq ?0 (or ?x ?X) (? ?_) (* hex-digits)))
 (rx-define oct-lit (seq ?0 (? (or ?o ?O)) (? ?_) (* oct-digits)))
 
-;; Integers are parsed with strconv.ParseInt which supports a leading sign.
-(rx-define river-int (seq (or bow (any ?- ?+)) (or bin-lit dec-lit hex-lit oct-lit) eow))
 (rx-define river-identifier (seq (any alpha ?_) (* word)))
-(rx-define river-octal (repeat 3 (any "0-7")))
-(rx-define river-block-header (seq bol (group (group river-identifier) (* (group ?. river-identifier)))))
 
+;; Integers are parsed with strconv.ParseInt which supports a leading sign.
+(rx-define river-block-header (seq bol (group (group river-identifier) (* (group ?. river-identifier)))))
 (rx-define river-constant (or "true" "false" "null"))
+(rx-define river-int (seq (or bow (any ?- ?+)) (or bin-lit dec-lit hex-lit oct-lit) eow))
 (rx-define river-todo (seq (not ?.) (group bow (or "TODO" "FIXME" "XXX" "BUG" "NOTE") eow)))
 
 ;; TODO: introduce levels of font lock
