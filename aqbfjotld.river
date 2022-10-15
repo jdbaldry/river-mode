@@ -1,5 +1,4 @@
 // TODO: the Discover Kubernetes pods to collect metrics from.
-// "\<-\=\(0\|[1-9]_\?\(\d\|\d\+_\?\d\+\)*\)\%([Ee][-+]\=\d\+\)\=\>"
 discovery.kubernetes "pods" {
 	role = "pod"
 }
