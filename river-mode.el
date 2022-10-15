@@ -21,22 +21,41 @@
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.river\\'" . river-mode))
 
-(defconst river-identifier-regexp "[A-Za-z_][0-9A-Za-z_]*")
+(rx-define bin (any ?0 ?1))
+(rx-define oct (any "0-7"))
 
-(defconst river-block-header-regexp (concat "^\\(\\(" river-identifier-regexp "\\)\\(\\.\\(" river-identifier-regexp "\\)\\)*\\) "))
+(rx-define readable-digits (digit-charset)
+  (seq digit-charset (* (or (seq ?_ digit-charset) digit-charset))))
 
-(defconst river-constant (regexp-opt '("true" "false" "null")))
-(defconst river-float "NOTDONE")
-(defconst river-int "NOTDONE")
-;; TODO: This erroneously highlights TODO identifiers.
-(defconst river-todo (regexp-opt '("TODO" "FIXME" "XXX" "BUG" "NOTE") "\\<\\(?:"))
+(rx-define bin-digits (readable-digits bin))
+(rx-define dec-digits (readable-digits digit))
+(rx-define hex-digits (readable-digits hex))
+(rx-define oct-digits (readable-digits oct))
+
+(rx-define bin-lit (seq ?0 (or ?b ?B) (? ?_) (* bin-digits)))
+(rx-define dec-lit (seq (or ?0 (seq (any "1-9") (* (seq (? ?_) dec-digits))))))
+(rx-define hex-lit (seq ?0 (or ?x ?X) (? ?_) (* hex-digits)))
+(rx-define oct-lit (seq ?0 (? (or ?o ?O)) (? ?_) (* oct-digits)))
+
+(rx-define river-int (seq bow (or bin-lit dec-lit hex-lit oct-lit) eow))
+(rx-define river-identifier (seq (any alpha ?_) (* word)))
+(rx-define river-octal (repeat 3 (any "0-7")))
+(rx-define river-block-header (seq bol (group (group river-identifier) (* (group ?. river-identifier)))))
+
+(rx-define river-constant (or "true" "false" "null"))
+(rx-define river-todo (seq (not ?.) (group bow (or "TODO" "FIXME" "XXX" "BUG" "NOTE") eow)))
 
 ;; TODO: introduce levels of font lock
 ;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Levels-of-Font-Lock.html
 (defconst river-font-lock-keywords
-  `((,river-block-header-regexp . (1 font-lock-variable-name-face t))
-    (,river-constant . font-lock-constant-face)
-    (,river-todo . (0 font-lock-warning-face t)))
+  (let ((river-block-header-regexp (rx river-block-header))
+        (river-constant-regexp (rx river-constant))
+        (river-todo-regexp (rx river-todo))
+        (river-int-regexp (rx river-int)))
+    `((,river-block-header-regexp . (1 font-lock-variable-name-face t))
+      (,river-constant-regexp . font-lock-constant-face)
+      (,river-int-regexp . font-lock-constant-face)
+      (,river-todo-regexp . (0 font-lock-warning-face t))))
   "Syntax highlighting for 'river-mode'.")
 
 (defvar river-mode-syntax-table
