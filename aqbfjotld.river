@@ -31,18 +31,30 @@ prometheus.remote_write "default" {
 	}
 }
 
-number "example" {
+integer "example" {
 	zero = 0
 	one  = 1
 	ten  = 10
-	bin = 0b1
-	hex = 0x01ef
+
+	// Binary integers are not yet supported by the River parser.
+	// To check: agent --version && EXPERIMENTAL_ENABLE_FLOW=1 agent fmt - <<<"bin = 0b1"
+	// bin = 0b1
+	// Hexadecimal integers are not yet supported by the River parser.
+	// To check: agent --version && EXPERIMENTAL_ENABLE_FLOW=1 agent fmt - <<<"hex = 0x01ef"
+	// hex = 0x01ef
 	oct = 0777
+
+	// Leading positive sign is not yet supported by the River parser but is valid according
+	// to strconv.ParseInt.
+	// To check: agent --version && EXPERIMENTAL_ENABLE_FLOW=1 agent fmt - <<<"positive = +100"
+	// positive = +100
+	negative = -100
+
 	// Underscores for readability are not yet supported by the River parser.
 	// To check: agent --version && EXPERIMENTAL_ENABLE_FLOW=1 agent fmt - <<<"underscored = 1_000_000"
 	// million = 1_000_000
 	googol   = 10e100
 	exponent = 1e10
-	preceding_underscore = _1_00
-	trailing_underscore = 1_0_
+
+	preceding_underscore = _1_00 // Is an identifier not an integer
 }
