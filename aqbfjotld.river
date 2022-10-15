@@ -46,6 +46,13 @@ float "example" {
 	// Not yet sure why this doesn't parse.
 	// To check: agent --version && EXPERIMENTAL_ENABLE_FLOW=1 agent fmt - <<<"decimal_exponent = 0.15e+0_2"
 	// decimal_exponent = 0.15e+0_2  // == 15.0
+
+	// hex_float = 0x1p-2       // == 0.25
+	// hex_float = 0x2.p10      // == 2048.0
+	// zero_exp = 0x1.Fp+0     // == 1.9375
+	// negative_zero_exp = 0X.8p-0      // == 0.5
+	// with_underscores = 0X_1FFFP-16  // == 0.1249847412109375
+	// integer_subtraction = 0x15e-2      // == 0x15e - 2
 }
 
 integer "example" {

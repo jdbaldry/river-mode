@@ -38,16 +38,22 @@
 (rx-define oct-lit (seq ?0 (? (or ?o ?O)) (? ?_) (* oct-digits)))
 
 (rx-define dec-exp (seq (any ?e ?E) (? (any ?- ?+)) dec-digits))
-(rx-define dec-float-lit (or (seq dec-digits "." (* dec-digits) (* dec-exp))
+(rx-define dec-float-lit (or (seq dec-digits ?. (* dec-digits) (* dec-exp))
                              (seq dec-digits dec-exp)
-                             (seq "." dec-digits (* dec-exp))))
+                             (seq ?. dec-digits (* dec-exp))))
+
+(rx-define hex-exp (seq (any ?p ?P) (? (any ?- ?+)) dec-digits))
+(rx-define hex-man (seq (or (seq (? ?_) hex-digits ?. (* hex-digits))
+                            (seq (? ?_) hex-digits)
+                            (seq ?. hex-digits))))
+(rx-define hex-float-lit (seq ?0 (any ?x ?X) hex-man hex-exp))
 
 (rx-define river-identifier (seq (any alpha ?_) (* word)))
 
 ;; Integers are parsed with strconv.ParseInt which supports a leading sign.
 (rx-define river-block-header (seq bol (group (group river-identifier) (* (group ?. river-identifier)))))
 (rx-define river-constant (or "true" "false" "null"))
-(rx-define river-float dec-float-lit)
+(rx-define river-float (or dec-float-lit hex-float-lit))
 (rx-define river-int (seq (or bow (any ?- ?+)) (or bin-lit dec-lit hex-lit oct-lit) eow))
 (rx-define river-todo (seq (not ?.) (group bow (or "TODO" "FIXME" "XXX" "BUG" "NOTE") eow)))
 
@@ -60,9 +66,9 @@
         (river-int-regexp (rx river-int))
         (river-todo-regexp (rx river-todo)))
 
-    `((,river-block-header-regexp . (1 font-lock-variable-name-face t))
+    `((,river-block-header-regexp . (0 font-lock-variable-name-face t))
       (,river-constant-regexp . font-lock-constant-face)
-      (,river-float-regexp . font-lock-warning-face)
+      (,river-float-regexp . font-lock-constant-face)
       (,river-int-regexp . font-lock-constant-face)
       (,river-todo-regexp . (0 font-lock-warning-face t))))
   "Syntax highlighting for 'river-mode'.")
