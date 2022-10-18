@@ -32,10 +32,10 @@
 (rx-define hex-digits (readable-digits hex))
 (rx-define oct-digits (readable-digits oct))
 
-(rx-define bin-lit (seq ?0 (or ?b ?B) (? ?_) (* bin-digits)))
+(rx-define bin-lit (seq ?0 (any ?b ?B) (? ?_) (* bin-digits)))
 (rx-define dec-lit (seq (or ?0 (seq (any "1-9") (* (seq (? ?_) dec-digits))))))
-(rx-define hex-lit (seq ?0 (or ?x ?X) (? ?_) (* hex-digits)))
-(rx-define oct-lit (seq ?0 (? (or ?o ?O)) (? ?_) (* oct-digits)))
+(rx-define hex-lit (seq ?0 (any ?x ?X) (? ?_) (* hex-digits)))
+(rx-define oct-lit (seq ?0 (? (any ?o ?O)) (? ?_) (* oct-digits)))
 
 (rx-define dec-exp (seq (any ?e ?E) (? (any ?- ?+)) dec-digits))
 (rx-define dec-float-lit (or (seq dec-digits ?. (* dec-digits) (* dec-exp))
