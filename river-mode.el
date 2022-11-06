@@ -16,6 +16,8 @@
 ;; TODO: consider using `make-sparse-keymap` instead.
 (defvar river-mode-map (make-keymap) "Keymap for River major mode.")
 
+(defvar river-tab-width 1 "Number of tabs characters to insert for indentation.")
+
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.rvr\\'" . river-mode))
 ;;;###autoload
@@ -102,6 +104,9 @@
   (setq major-mode 'river-mode)
   (setq mode-name "River")
   (setq indent-tabs-mode t)
+  (setq tab-width river-tab-width)
+  (setq tab-stop-list nil)
+  (setq indent-line-function (quote insert-tab))
   (run-hooks 'river-mode-hook))
 
 ;; Taken from https://github.com/dominikh/go-mode.el/blob/08aa90d52f0e7d2ad02f961b554e13329672d7cb/go-mode.el#L1852-L1894
