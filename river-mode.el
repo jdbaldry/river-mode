@@ -106,7 +106,7 @@
   (setq indent-tabs-mode t)
   (setq tab-width river-tab-width)
   (setq tab-stop-list nil)
-  (setq indent-line-function (quote insert-tab))
+  (setq indent-line-function 'river-indent-line)
   (run-hooks 'river-mode-hook))
 
 ;; Taken from https://github.com/dominikh/go-mode.el/blob/08aa90d52f0e7d2ad02f961b554e13329672d7cb/go-mode.el#L1852-L1894
@@ -205,6 +205,44 @@ Formatting requires the 'agent' binary in the PATH."
       (kill-buffer patchbuf)
       (delete-file tmpfile))))
 
+;; Indentation hints taken from hcl-mode: https://github.com/purcell/emacs-hcl-mode.
+(defun river--block-indentation ()
+  "Maintain current indentation when inside a block."
+  (let ((current-line (line-number-at-pos)))
+    (save-excursion
+      (condition-case nil
+          (progn
+            (backward-up-list)
+            (unless (= current-line (line-number-at-pos))
+              (current-indentation)))
+        (scan-error nil)))))
+(defun river--previous-indentation ()
+  (save-excursion
+    (forward-line -1)
+    (let (finish)
+      (while (not finish)
+        (cond ((bobp) (setq finish t))
+              (t
+               (let ((line (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
+                 (if (not (string-match-p "\\`\\s-*\\'" line))
+                     (setq finish t)
+                   (forward-line -1))))))
+      (current-indentation))))
+(defun river-indent-line ()
+  "Indent current line respecting block indentation."
+  (interactive)
+  (let* ((current-point (point))
+         (pos (- (point-max) current-point)))
+    (back-to-indentation)
+    (let ((block-indentation (river--block-indentation)))
+      (delete-region (line-beginning-position) (point))
+      (if block-indentation
+          (if (looking-at "[]}]")
+              (indent-to block-indentation)
+            (indent-to (+ block-indentation river-tab-width)))
+        (indent-to (river--previous-indentation)))
+      (when (> (- (point-max) pos) (point))
+        (goto-char (- (point-max) pos))))))
 
 (defun river-format-before-save ()
   "Add this to .emacs to run formatting on the current buffer when saving:
