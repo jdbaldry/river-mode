@@ -95,6 +95,7 @@
     st)
   "Syntax table for 'river-mode'.")
 
+;;;###autoload
 (define-derived-mode river-mode prog-mode "River"
   "Major mode for editing River configuration language files." ()
   (kill-all-local-variables)
