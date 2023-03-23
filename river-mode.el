@@ -73,7 +73,7 @@
       (,river-float-regexp . font-lock-constant-face)
       (,river-int-regexp . font-lock-constant-face)
       (,river-todo-regexp . (0 font-lock-warning-face t))))
-  "Syntax highlighting for 'river-mode'.")
+  "Syntax highlighting for `river-mode'.")
 
 (defvar river-mode-syntax-table
   (let ((st (make-syntax-table)))
@@ -93,7 +93,7 @@
     (modify-syntax-entry ?* ". 23" st)
     (modify-syntax-entry ?\n "> b" st)
     st)
-  "Syntax table for 'river-mode'.")
+  "Syntax table for `river-mode'.")
 
 ;;;###autoload
 (define-derived-mode river-mode prog-mode "River"
