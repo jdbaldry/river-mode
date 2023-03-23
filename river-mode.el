@@ -13,8 +13,7 @@
 ;;; Code:
 (defvar river-mode-hook nil "Hook executed when river-mode is run.")
 
-;; TODO: consider using `make-sparse-keymap` instead.
-(defvar river-mode-map (make-keymap) "Keymap for River major mode.")
+(defvar river-mode-map (make-sparse-keymap) "Keymap for River major mode.")
 
 (defvar river-tab-width 1 "Number of tabs characters to insert for indentation.")
 
