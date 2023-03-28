@@ -55,7 +55,7 @@
 (rx-define river-block-header (seq bol river-identifier (* (group ?. river-identifier))))
 (rx-define river-constant (or "true" "false" "null"))
 (rx-define river-float (or dec-float-lit hex-float-lit))
-(rx-define river-int (seq (any ?- ?+ whitespace) (or bin-lit dec-lit hex-lit oct-lit) eow))
+(rx-define river-int (seq (any ?- whitespace) (or bin-lit dec-lit hex-lit oct-lit) eow))
 (rx-define river-todo (seq (not ?.) (group bow (or "TODO" "FIXME" "XXX" "BUG" "NOTE") eow)))
 
 ;; TODO: introduce levels of font lock
